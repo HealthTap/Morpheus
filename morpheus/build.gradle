@@ -3,14 +3,14 @@ apply plugin: 'maven-publish'
 
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '25.0.3'
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 22
+        targetSdkVersion 26
         versionCode 19
-        versionName "0.6.10"
+        versionName "0.6.11-SNAPSHOT"
     }
     buildTypes {
         release {
@@ -29,22 +29,20 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.mockito:mockito-core:1.10.10'
+    testImplementation 'org.json:json:20160810'
+    testImplementation 'org.robolectric:robolectric:3.4.2'
+    testImplementation 'org.skyscreamer:jsonassert:1.5.0'
 
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-core:1.10.10'
-    testCompile 'org.json:json:20160810'
-    testCompile 'org.robolectric:robolectric:3.4.2'
-    testCompile 'org.skyscreamer:jsonassert:1.5.0'
-
-    compile 'com.google.code.gson:gson:2.8.0'
-    compile 'com.squareup.retrofit2:retrofit:2.1.0'
-    compile 'com.squareup.okhttp3:okhttp:3.6.0'
+    api 'com.google.code.gson:gson:2.8.0'
+    api 'com.squareup.retrofit2:retrofit:2.1.0'
+    api 'com.squareup.okhttp3:okhttp:3.6.0'
 }
 
 task sourceJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier "source"
+    classifier "sources"
 }
 
 publishing {

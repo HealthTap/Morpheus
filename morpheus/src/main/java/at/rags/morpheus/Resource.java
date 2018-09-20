@@ -14,6 +14,8 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
+import at.rags.morpheus.annotations.JsonApiType;
+
 /**
  * Extend this resource to your custom Object you want to map.
  * You can set custom json object names and relationships via the provided annotations.
@@ -34,6 +36,10 @@ public class Resource implements Serializable {
     private Map<String, String> relationshipMetas;
 
     public Resource() {
+        JsonApiType typeAnnotation = getClass().getAnnotation(JsonApiType.class);
+        if (typeAnnotation != null) {
+            type = typeAnnotation.value();
+        }
     }
 
     public JSONObject getMeta() {
@@ -150,7 +156,7 @@ public class Resource implements Serializable {
         if (obj == null || (!getClass().isInstance(obj) && !obj.getClass().isInstance(this)))
             return false;
         Resource that = (Resource) obj;
-        return this.id.equals(that.id);
+        return this.id != null && this.id.equals(that.id);
     }
 }
 
