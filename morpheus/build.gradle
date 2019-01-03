@@ -10,7 +10,7 @@ android {
         minSdkVersion 9
         targetSdkVersion 26
         versionCode 19
-        versionName "0.6.11-SNAPSHOT"
+        versionName "0.6.11"
     }
     buildTypes {
         release {
@@ -36,8 +36,8 @@ dependencies {
     testImplementation 'org.skyscreamer:jsonassert:1.5.0'
 
     api 'com.google.code.gson:gson:2.8.0'
-    api 'com.squareup.retrofit2:retrofit:2.1.0'
-    api 'com.squareup.okhttp3:okhttp:3.6.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.1.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.6.0'
 }
 
 task sourceJar(type: Jar) {
