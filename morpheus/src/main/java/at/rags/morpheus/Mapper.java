@@ -581,14 +581,23 @@ class Mapper {
      */
     private HashMap<String, String> getRelationshipNames(Class clazz) {
         HashMap<String, String> relationNames = new HashMap<>();
-        for (Field field : clazz.getDeclaredFields()) {
-            String fieldName = field.getName();
-            Relationship relationshipAnnotation = field.getAnnotation(Relationship.class);
-            if (relationshipAnnotation != null) {
-                relationNames.put(relationshipAnnotation.value(), fieldName);
+        Class objClass = clazz;
+        Class superClass;
+        while(true) {
+            superClass = objClass.getSuperclass();
+            for (Field field : clazz.getDeclaredFields()) {
+                String fieldName = field.getName();
+                Relationship relationshipAnnotation = field.getAnnotation(Relationship.class);
+                if (relationshipAnnotation != null) {
+                    relationNames.put(relationshipAnnotation.value(), fieldName);
+                }
             }
-        }
 
+            if (superClass == Resource.class || superClass == Object.class) {
+                break;
+            }
+            objClass = superClass;
+        }
         return relationNames;
     }
 
