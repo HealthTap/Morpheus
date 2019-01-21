@@ -585,7 +585,7 @@ class Mapper {
         Class superClass;
         while(true) {
             superClass = objClass.getSuperclass();
-            for (Field field : clazz.getDeclaredFields()) {
+            for (Field field : objClass.getDeclaredFields()) {
                 String fieldName = field.getName();
                 Relationship relationshipAnnotation = field.getAnnotation(Relationship.class);
                 if (relationshipAnnotation != null) {
