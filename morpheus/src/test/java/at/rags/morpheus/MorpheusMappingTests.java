@@ -116,6 +116,19 @@ public class MorpheusMappingTests extends InstrumentationTestCase {
     }
 
     @Test
+    public void testWithParentRelations() throws NotExtendingResourceException, JSONException, IOException {
+        Morpheus morpheus = new Morpheus();
+        Deserializer.registerResourceClass("child_article", ChildArticle.class);
+        Deserializer.registerResourceClass("people", Author.class);
+        Deserializer.registerResourceClass("comments", Comment.class);
+        JsonApiObject jsonApiObject = morpheus.parse(loadJSONFromResource("child_article.json"));
+        assertNotNull(jsonApiObject.getResource());
+        ChildArticle childArticle = (ChildArticle) jsonApiObject.getResource();
+        assertNotNull(childArticle.getAuthor());
+        assertEquals("Dan", childArticle.getAuthor().getFirstName());
+    }
+
+    @Test
     public void testComplicatedModel() throws NotExtendingResourceException, JSONException, IOException {
         Morpheus morpheus = new Morpheus();
         Deserializer.registerResourceClass(ClinicalQueueItem.class.getAnnotation(JsonApiType.class).value(), ClinicalQueueItem.class);
