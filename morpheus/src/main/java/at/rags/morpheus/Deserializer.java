@@ -90,10 +90,10 @@ public class Deserializer {
         return resourceObject;
     }
 
-    Object getRelationField(Resource resourceObject, String fieldName) {
+    Object getRelationField(Resource resourceObject, Class clazz, String fieldName) {
         Field field = null;
         try {
-            field = resourceObject.getClass().getDeclaredField(fieldName);
+            field = clazz.getDeclaredField(fieldName);
             boolean accessible = field.isAccessible();
             field.setAccessible(true);
             try {

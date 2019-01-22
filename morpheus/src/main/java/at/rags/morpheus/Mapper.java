@@ -217,8 +217,7 @@ class Mapper {
                     try {
                         relationData = relationJsonObject.get("data");
                         if (relationData instanceof JSONObject) {
-                            Resource relationObject = null;
-                            relationObject = Factory.newObjectFromJSONObject((JSONObject) relationData, null);
+                            Resource relationObject = Factory.newObjectFromJSONObject((JSONObject) relationData, null);
 
                             if (relationObject != null) {
                                 relationObject = matchIncludedToRelation(relationObject, included);
@@ -259,7 +258,7 @@ class Mapper {
                 String fieldName = field.getName();
                 Relationship relationshipAnnotation = field.getAnnotation(Relationship.class);
                 if (relationshipAnnotation != null) {
-                    Object relationObject = deserializer.getRelationField(object, fieldName);
+                    Object relationObject = deserializer.getRelationField(object, objClass, fieldName);
 
                     if (relationObject != null) {
                         if (relationObject instanceof Resource) {
@@ -269,7 +268,7 @@ class Mapper {
                         }
                     }
 
-                    deserializer.setField(object, objClass, relationshipAnnotation.value(), relationObject);
+                    deserializer.setField(object, objClass, fieldName, relationObject);
                 }
             }
 
