@@ -185,52 +185,63 @@ class Mapper {
      */
     Resource mapRelations(Resource object, JSONObject jsonObject, List<Resource> included)
         throws NotExtendingResourceException, ResourceCreationException {
-        HashMap<String, String> relationshipNames = getRelationshipNames(object.getClass());
+        Class objClass = object.getClass();
+        Class superClass;
 
         //going through relationship names annotated in Class
-        for (String relationship : relationshipNames.keySet()) {
-            JSONObject relationJsonObject = null;
-            try {
-                relationJsonObject = jsonObject.getJSONObject(relationship);
-            } catch (JSONException e) {
-                Logger.debug("Relationship named " + relationship + "not found in JSON");
-                continue;
-            }
+        while(true) {
+            superClass = objClass.getSuperclass();
+            for (Field field : objClass.getDeclaredFields()) {
+                String fieldName = field.getName();
+                Relationship relationshipAnnotation = field.getAnnotation(Relationship.class);
+                if (relationshipAnnotation != null) {
+                    String relationship = relationshipAnnotation.value();
 
-            //map relationships meta
-            JSONObject metaObject = null;
-            metaObject = relationJsonObject.optJSONObject("meta");
-            if (metaObject != null) {
-                object.setRelationshipMeta(relationship, metaObject);
-            }
+                    JSONObject relationJsonObject = null;
+                    try {
+                        relationJsonObject = jsonObject.getJSONObject(relationship);
+                    } catch (JSONException e) {
+                        Logger.debug("Relationship named " + relationship + "not found in JSON");
+                        continue;
+                    }
 
-            //map json object of data
-            JSONObject relationDataObject = null;
-            try {
-                relationDataObject = relationJsonObject.getJSONObject("data");
-                Resource relationObject = Factory.newObjectFromJSONObject(relationDataObject, null);
+                    //map relationships meta
+                    JSONObject metaObject = null;
+                    metaObject = relationJsonObject.optJSONObject("meta");
+                    if (metaObject != null) {
+                        object.setRelationshipMeta(relationship, metaObject);
+                    }
 
-                if (relationObject != null) {
-                    relationObject = matchIncludedToRelation(relationObject, included);
+                    //map json object of data
+                    Object relationData = null;
+                    try {
+                        relationData = relationJsonObject.get("data");
+                        if (relationData instanceof JSONObject) {
+                            Resource relationObject = Factory.newObjectFromJSONObject((JSONObject) relationData, null);
+
+                            if (relationObject != null) {
+                                relationObject = matchIncludedToRelation(relationObject, included);
+                            }
+
+                            deserializer.setField(object, objClass, fieldName, relationObject);
+                        } else if (relationData instanceof JSONArray) {
+                            List<Resource> relationArray = Factory.newObjectFromJSONArray((JSONArray) relationData, null);
+
+                            relationArray = matchIncludedToRelation(relationArray, included);
+
+                            deserializer.setField(object, objClass, fieldName, relationArray);
+                        }
+
+                    } catch (JSONException e) {
+                        Logger.debug("JSON relationship does not contain data");
+                    }
                 }
-
-                deserializer.setField(object, relationshipNames.get(relationship), relationObject);
-            } catch (JSONException e) {
-                Logger.debug("JSON relationship does not contain data");
             }
 
-            //map json array of data
-            JSONArray relationDataArray = null;
-            try {
-                relationDataArray = relationJsonObject.getJSONArray("data");
-                List<Resource> relationArray = Factory.newObjectFromJSONArray(relationDataArray, null);
-
-                relationArray = matchIncludedToRelation(relationArray, included);
-
-                deserializer.setField(object, relationshipNames.get(relationship), relationArray);
-            } catch (JSONException e) {
-                Logger.debug("JSON relationship does not contain data");
+            if (superClass == Resource.class || superClass == Object.class) {
+                break;
             }
+            objClass = superClass;
         }
 
         return object;
@@ -238,23 +249,33 @@ class Mapper {
 
     Resource mapRelations(Resource object, List<Resource> included)
         throws NotExtendingResourceException, ResourceCreationException {
-        HashMap<String, String> relationshipNames = getRelationshipNames(object.getClass());
-
+        Class objClass = object.getClass();
+        Class superClass;
         //going through relationship names annotated in Class
-        for (String relationship : relationshipNames.keySet()) {
+        while(true) {
+            superClass = objClass.getSuperclass();
+            for (Field field : objClass.getDeclaredFields()) {
+                String fieldName = field.getName();
+                Relationship relationshipAnnotation = field.getAnnotation(Relationship.class);
+                if (relationshipAnnotation != null) {
+                    Object relationObject = deserializer.getRelationField(object, objClass, fieldName);
 
-            String fieldName = relationshipNames.get(relationship);
-            Object relationObject = deserializer.getRelationField(object, fieldName);
+                    if (relationObject != null) {
+                        if (relationObject instanceof Resource) {
+                            relationObject = matchIncludedToRelation((Resource) relationObject, included);
+                        } else if (relationObject instanceof List) {
+                            relationObject = matchIncludedToRelation((List<Resource>) relationObject, included);
+                        }
+                    }
 
-            if (relationObject != null) {
-                if (relationObject instanceof Resource) {
-                    relationObject = matchIncludedToRelation((Resource) relationObject, included);
-                } else if (relationObject instanceof List) {
-                    relationObject = matchIncludedToRelation((List<Resource>) relationObject, included);
+                    deserializer.setField(object, objClass, fieldName, relationObject);
                 }
             }
 
-            deserializer.setField(object, relationshipNames.get(relationship), relationObject);
+            if (superClass == Resource.class || superClass == Object.class) {
+                break;
+            }
+            objClass = superClass;
         }
 
         return object;
@@ -572,34 +593,6 @@ class Mapper {
 
 
     // helper
-
-    /**
-     * Get the annotated relationship names.
-     *
-     * @param clazz Class for annotation.
-     * @return List of relationship names.
-     */
-    private HashMap<String, String> getRelationshipNames(Class clazz) {
-        HashMap<String, String> relationNames = new HashMap<>();
-        Class objClass = clazz;
-        Class superClass;
-        while(true) {
-            superClass = objClass.getSuperclass();
-            for (Field field : clazz.getDeclaredFields()) {
-                String fieldName = field.getName();
-                Relationship relationshipAnnotation = field.getAnnotation(Relationship.class);
-                if (relationshipAnnotation != null) {
-                    relationNames.put(relationshipAnnotation.value(), fieldName);
-                }
-            }
-
-            if (superClass == Resource.class || superClass == Object.class) {
-                break;
-            }
-            objClass = superClass;
-        }
-        return relationNames;
-    }
 
     private String nameForResourceClass(Class clazz) {
         for (String key : Deserializer.getRegisteredClasses().keySet()) {
