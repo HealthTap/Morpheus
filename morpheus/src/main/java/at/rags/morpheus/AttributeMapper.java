@@ -85,10 +85,12 @@ public class AttributeMapper {
             if (field.getType().isEnum()) {
                 reader.setLenient(true);
             }
-            try {
-                object = gson.getAdapter(field.getType()).read(reader);
-            } catch (IOException e) {
-                Logger.debug(jsonFieldName + " failed to read.");
+            if (field.getType() != String.class) {
+                try {
+                    object = gson.getAdapter(field.getType()).read(reader);
+                } catch (IOException e) {
+                    Logger.debug(jsonFieldName + " failed to read.");
+                }
             }
             deserializer.setField(jsonApiResource, objClass, field.getName(), object);
         }
