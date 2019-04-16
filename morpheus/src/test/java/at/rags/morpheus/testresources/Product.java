@@ -21,6 +21,8 @@ public class Product extends Resource {
     private HashMap<String, Boolean> availability;
     private Location location;
     private List<Author> authors;
+    @SerializedName("time")
+    private String time;
     private String[] times;
 
     public String getName() {
@@ -77,6 +79,10 @@ public class Product extends Resource {
 
     public void setAuthors(List<Author> authors) {
         this.authors = authors;
+    }
+
+    public String getTime() {
+        return time;
     }
 
     public String[] getTimes() {
